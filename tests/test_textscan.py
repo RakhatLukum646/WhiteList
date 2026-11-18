@@ -46,9 +46,3 @@ def test_ocr_fix_only_touches_numeric_tokens():
 @pytest.mark.parametrize("tok,val", [("186 180", 186180), ("1,548.50", 1548.5), ("1 234 567,89", 1234567.89), ("12,5", 12.5)])
 def test_number_parsing(tok, val):
     assert ts.parse_number(tok) == val
-
-
-def test_percent_is_not_an_amount_and_vat_exemption_gives_nothing():
-    assert ts.vat_candidates("НДС 16%: 25 680") == [25680]
-    assert ts.vat_candidates("НДС не облагается") == []
-    assert ts.vat_candidates("Всего с НДС: 186 180") == []

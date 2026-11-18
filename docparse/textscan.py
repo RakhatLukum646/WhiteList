@@ -1,7 +1,7 @@
 """Детерминированные сканеры текста: OCR-нормализация, даты, числа, суммы прописью, валюты.
 
-Используются в двух местах: (1) проверка, что значение от модели реально есть в документе
-(grounding), (2) офлайн-"модель" из mock_llm.py. Здесь нет вызовов LLM.
+Используются: (1) проверка, что значение от модели реально есть в документе
+(grounding), (2) поиск конфликтов (две даты, два «итого»). Здесь нет вызовов LLM.
 """
 from __future__ import annotations
 
@@ -95,7 +95,6 @@ def issue_dates(text: str) -> list[str]:
 
 # --- Числа ------------------------------------------------------------------------------------
 _NUM = re.compile(r"(?<![\d.,])(\d{1,3}(?:[  ,]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d+)?)(?!\d)")
-NUM_FULL = re.compile(r"\d{1,3}(?:[  ,]\d{3})+(?:[.,]\d{1,2})?|\d+(?:[.,]\d+)?")  # использовать через fullmatch
 
 
 def parse_number(tok: str) -> float:
@@ -206,8 +205,6 @@ _TOTAL_PRIMARY = re.compile(
     r"всего\s+к\s+оплате|итого\s+к\s+оплате|к\s+оплате|всего\s+с\s+ндс|итого\s+с\s+ндс|жалпы\s+сомасы|"
     r"барлығы|total\s+due|amount\s+due|grand\s+total|\btotal\b", re.I)
 _TOTAL_SECONDARY = re.compile(r"итого|всего", re.I)
-_VAT_LABEL = re.compile(r"(?<![сc]\s)(?:ндс|ққс|vat)", re.I)
-_VAT_NONE = re.compile(r"не\s+облагается|без\s+(?:учёта\s+|учета\s+)?ндс|ққс\s+жоқ|not\s+applicable|n/a|exempt|включая", re.I)
 
 
 def amounts_in_line(line: str) -> list[float]:
@@ -231,13 +228,3 @@ def total_candidates(text: str) -> list[float]:
         if vals:
             return vals
     return []
-
-
-def vat_candidates(text: str) -> list[float]:
-    vals = []
-    for line in text.splitlines():
-        if _VAT_LABEL.search(line) and not _VAT_NONE.search(line):
-            a = amounts_in_line(line)
-            if a:
-                vals.append(a[-1])
-    return vals

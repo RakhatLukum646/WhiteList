@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -6,51 +7,43 @@ from pathlib import Path
 import pytest
 
 from docparse import llm as llm_mod
-from docparse.llm import LLMUnavailable, OllamaLLM
+from docparse.llm import GeminiLLM, LLMUnavailable
 
 ROOT = Path(__file__).parent.parent
 
 
-def test_ollama_request_shape_and_response_parsing(monkeypatch):
+def test_gemini_request_shape_and_response_parsing(monkeypatch):
     seen = {}
 
     class Resp:
         def __enter__(self): return self
         def __exit__(self, *a): return False
-        def read(self): return json.dumps({"message": {"content": "{}"}}).encode()
+        def read(self): return json.dumps({"candidates": [{"content": {"parts": [{"text": "{}"}]}}]}).encode()
 
     def fake_urlopen(req, timeout):
-        seen["url"], seen["body"] = req.full_url, json.loads(req.data)
+        seen["url"], seen["body"], seen["key"] = req.full_url, json.loads(req.data), req.get_header("X-goog-api-key")
         return Resp()
 
+    monkeypatch.setenv("GOOGLE_API_KEY", "test-key")
     monkeypatch.setattr(llm_mod.urllib.request, "urlopen", fake_urlopen)
-    out = OllamaLLM(model="m", host="http://h:1/").complete([{"role": "user", "content": "x"}])
-    assert out == "{}" and seen["url"] == "http://h:1/api/chat"
-    assert seen["body"]["stream"] is False and seen["body"]["options"]["temperature"] == 0
-    assert "properties" in seen["body"]["format"]  # JSON-схема ограничивает генерацию
+    msgs = [{"role": "system", "content": "S"}, {"role": "user", "content": "U"}, {"role": "assistant", "content": "A"}]
+    assert GeminiLLM("m").complete(msgs) == "{}"
+    assert seen["url"].endswith("/models/m:generateContent") and seen["key"] == "test-key"
+    assert "test-key" not in seen["url"]  # ключ только в заголовке
+    b = seen["body"]
+    assert b["systemInstruction"]["parts"][0]["text"] == "S"
+    assert [c["role"] for c in b["contents"]] == ["user", "model"]
+    assert b["generationConfig"]["temperature"] == 0 and "properties" in b["generationConfig"]["responseJsonSchema"]
 
 
-def test_ollama_down_raises_dedicated_error():
+def test_missing_api_key_raises_dedicated_error(monkeypatch):
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     with pytest.raises(LLMUnavailable):
-        OllamaLLM(host="http://127.0.0.1:9", timeout=1).complete([])
+        GeminiLLM().complete([])
 
 
-def run_cli(*args):
-    return subprocess.run([sys.executable, "-m", "docparse", *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
-
-
-def test_cli_prints_valid_json_for_a_document():
-    p = run_cli("data/docs/01.txt")
-    assert p.returncode == 0
-    assert json.loads(p.stdout)["total_amount"] == 186180
-
-
-def test_cli_exit_code_4_when_model_unavailable():
-    p = subprocess.run([sys.executable, "-m", "docparse", "data/docs/01.txt", "--backend", "ollama"], cwd=ROOT,
-                       capture_output=True, text=True, encoding="utf-8", env={**__import__("os").environ, "OLLAMA_HOST": "http://127.0.0.1:9"})
-    assert p.returncode == 4 and "error:" in p.stderr
-
-
-def test_eval_heuristic_has_no_hallucinations():
-    p = subprocess.run([sys.executable, "eval.py"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
-    assert p.returncode == 0 and "ГАЛЛЮЦИНАЦИИ (в эталоне null, заполнено): 0" in p.stdout
+def test_cli_exit_code_4_without_api_key():
+    env = {k: v for k, v in os.environ.items() if k != "GOOGLE_API_KEY"}
+    p = subprocess.run([sys.executable, "-m", "docparse", "data/docs/01.txt"], cwd=ROOT, capture_output=True,
+                       text=True, encoding="utf-8", env=env)
+    assert p.returncode == 4 and "GOOGLE_API_KEY" in p.stderr

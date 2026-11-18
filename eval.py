@@ -1,4 +1,4 @@
-"""Мини-eval: python eval.py [--backend heuristic|naive|ollama] [--no-guard] [-v]
+"""Мини-eval: python eval.py [--no-guard] [-v]
 
 По каждому полю: верно / неверно / ГАЛЛЮЦИНАЦИЯ (в эталоне null, модель заполнила) / ПРОПУСК (в эталоне есть, модель дала null).
 Галлюцинации и пропуски считаются раздельно: выдуманный БИН или сумма в бухгалтерии стоит дороже, чем пустое поле,
@@ -13,7 +13,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from docparse.llm import LLMUnavailable, make_llm
+from docparse.llm import GeminiLLM, LLMUnavailable
 from docparse.pipeline import extract
 from docparse.schema import SCALAR_FIELDS, DocResult
 
@@ -52,7 +52,6 @@ def classify(field: str, pred, gold) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", default="heuristic", choices=["heuristic", "naive", "ollama", "gemini"])
     ap.add_argument("--model")
     ap.add_argument("--no-guard", action="store_true", help="отключить grounding/reconcile (для сравнения)")
     ap.add_argument("--docs", default=str(ROOT / "data" / "docs"))
@@ -61,7 +60,7 @@ def main() -> int:
     args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")
 
-    llm = make_llm(args.backend, args.model)
+    llm = GeminiLLM(args.model)
     stats = {f: Counter() for f in FIELDS}
     item_tp = item_fp = item_fn = 0
     retried = failed = 0
@@ -99,7 +98,7 @@ def main() -> int:
                 diffs.append(f"  {doc.stem} warnings       MISSING expected warning code {need!r}")
 
     n = len(docs)
-    print(f"backend={args.backend} guard={'off' if args.no_guard else 'on'} документов={n}\n")
+    print(f"model={llm.model} guard={'off' if args.no_guard else 'on'} документов={n}\n")
     print(f"{'поле':15}{'верно':>7}{'точность':>10}{'галлюц.':>9}{'пропуск':>9}{'неверно':>9}")
     tot = Counter()
     for f in FIELDS:
