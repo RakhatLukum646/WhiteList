@@ -34,8 +34,9 @@ class _Evidence:
         self.fixed_dates = set(ts.issue_dates(self.fixed))
         self.raw_bins = ts.supplier_bin_candidates(text)
         self.fixed_bins = ts.supplier_bin_candidates(self.fixed)
-        self.raw_total, self.raw_total_words = ts.total_values(text)
-        self.fixed_total, _ = ts.total_values(self.fixed)
+        # те же кандидаты и тот же приоритет («к оплате» важнее «Итого»), что и в reconcile
+        self.raw_total = set(ts.total_candidates(text))
+        self.fixed_total = set(ts.total_candidates(self.fixed))
         self.raw_vat = ts.vat_numbers(text)
         self.fixed_vat = ts.vat_numbers(self.fixed)
         self.norm_raw = _norm(text)
@@ -63,9 +64,7 @@ class _Evidence:
     def total(self, v: float) -> str | None:
         close = lambda s: any(abs(v - x) < 0.005 for x in s)  # noqa: E731
         if close(self.raw_total):
-            return "verbatim"
-        if close(self.raw_total_words):
-            return "words"
+            return "verbatim" if close(self.raw_nums) else "words"
         return "ocr" if close(self.fixed_total) else None
 
     def vat(self, v: float) -> str | None:
@@ -136,7 +135,7 @@ def ground(result: DocResult, text: str) -> DocResult:
     if d["total_amount"] is not None:
         # 0 не подтверждаем; цена одной позиции — не итог: нужна строка с меткой итога
         how = ev.total(d["total_amount"]) if d["total_amount"] > 0 else None
-        drop("total_amount", "no such amount on a line labelled Итого/Всего/к оплате/Total") if how is None else keep("total_amount", how)
+        drop("total_amount", "not the document's total (amount on a 'к оплате/Total' line, else 'Итого/Всего' line)") if how is None else keep("total_amount", how)
 
     if d["vat_amount"] is not None:
         # НДС подтверждается только числом на строке с меткой НДС/VAT; ставка 16% и ноль — не сумма (правило 4 в README)

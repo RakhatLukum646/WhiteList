@@ -200,3 +200,13 @@ def test_total_on_a_total_line_still_accepted_in_all_forms():
     assert extract(_doc("03"), Scripted(_only(total_amount=340000))).result.total_amount == 340000  # прописью
     r = extract(_doc("08"), Scripted(_only(total_amount=58000))).result  # OCR
     assert r.total_amount == 58000 and any(w.startswith("ocr_repaired: total_amount") for w in r.warnings)
+
+
+def test_intermediate_subtotal_is_not_accepted_when_payable_total_exists():
+    # Документ 01: «Итого: 160 500» — промежуточная сумма, «Всего к оплате: 186 180» важнее (как в reconcile)
+    assert extract(_doc("01"), Scripted(_only(total_amount=160500))).result.total_amount is None
+
+
+def test_cost_line_is_not_a_total():
+    text = "Счёт № 5\nСтоимость доставки: 4 500 тенге"
+    assert extract(text, Scripted(_only(total_amount=4500))).result.total_amount is None
