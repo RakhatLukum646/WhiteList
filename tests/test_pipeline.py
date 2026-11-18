@@ -123,9 +123,7 @@ def test_unavailable_model_is_not_retried():
 
 
 def test_zero_vat_is_not_accepted_even_if_zero_appears_in_text():
-    text = "Шот № 5
-Жалпы сомасы: Үш жүз қырық мың теңге 00 тиын
-НДС не облагается"
+    text = "Шот № 5\nЖалпы сомасы: Үш жүз қырық мың теңге 00 тиын\nНДС не облагается"
     out = extract(text, Scripted(answer(doc_number="5", total_amount=340000, vat_amount=0.0, supplier_name=None,
                                         supplier_bin=None, doc_date=None)))
     assert out.result.vat_amount is None
