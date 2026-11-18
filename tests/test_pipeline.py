@@ -120,3 +120,17 @@ def test_unavailable_model_is_not_retried():
     with pytest.raises(LLMUnavailable):
         extract(DOC1, d)
     assert d.n == 1
+
+
+def test_zero_vat_is_not_accepted_even_if_zero_appears_in_text():
+    text = "Шот № 5
+Жалпы сомасы: Үш жүз қырық мың теңге 00 тиын
+НДС не облагается"
+    out = extract(text, Scripted(answer(doc_number="5", total_amount=340000, vat_amount=0.0, supplier_name=None,
+                                        supplier_bin=None, doc_date=None)))
+    assert out.result.vat_amount is None
+
+
+def test_model_may_report_confidence_for_line_items():
+    out = extract(DOC1, Scripted(answer(field_confidence={"line_items": 1.0})))
+    assert out.ok and out.attempts == 1

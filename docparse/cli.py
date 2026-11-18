@@ -15,7 +15,7 @@ from .pipeline import extract
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="docparse")
     ap.add_argument("path", help="текстовый файл документа или '-' для stdin")
-    ap.add_argument("--backend", default="heuristic", choices=["heuristic", "naive", "ollama"])
+    ap.add_argument("--backend", default="heuristic", choices=["heuristic", "naive", "ollama", "gemini"])
     ap.add_argument("--model", help="имя модели Ollama (по умолчанию $OLLAMA_MODEL или qwen2.5:7b)")
     ap.add_argument("--max-attempts", type=int, default=3)
     args = ap.parse_args(argv)

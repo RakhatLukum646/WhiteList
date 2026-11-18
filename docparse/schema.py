@@ -68,7 +68,7 @@ class DocResult(BaseModel):
     @field_validator("field_confidence")
     @classmethod
     def _known_keys(cls, v: dict[str, float]) -> dict[str, float]:
-        unknown = set(v) - set(SCALAR_FIELDS)
+        unknown = set(v) - set(SCALAR_FIELDS) - {"line_items"}
         if unknown:
             raise ValueError(f"unknown field_confidence keys: {sorted(unknown)}")
         return v

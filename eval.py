@@ -52,7 +52,7 @@ def classify(field: str, pred, gold) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", default="heuristic", choices=["heuristic", "naive", "ollama"])
+    ap.add_argument("--backend", default="heuristic", choices=["heuristic", "naive", "ollama", "gemini"])
     ap.add_argument("--model")
     ap.add_argument("--no-guard", action="store_true", help="отключить grounding/reconcile (для сравнения)")
     ap.add_argument("--docs", default=str(ROOT / "data" / "docs"))

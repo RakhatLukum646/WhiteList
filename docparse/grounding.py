@@ -114,7 +114,8 @@ def ground(result: DocResult, text: str) -> DocResult:
 
     for f in ("total_amount", "vat_amount"):
         if d[f] is not None:
-            how = ev.number(d[f])
+            # 0 не подтверждаем: «НДС не облагается»/«00 тиын» — не утверждение «НДС = 0» (правило 4 в README)
+            how = ev.number(d[f]) if d[f] > 0 else None
             drop(f, "number not found in the document (not computed by us on purpose)") if how is None else keep(f, how)
 
     items = []
