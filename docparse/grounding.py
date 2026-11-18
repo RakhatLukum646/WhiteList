@@ -29,8 +29,13 @@ class _Evidence:
         self.raw_nums = ts.number_values(text)
         self.fixed_nums = ts.number_values(self.fixed)
         self.word_nums = {w.value for w in ts.word_amounts(text)}
-        self.raw_dates = {f.iso for f in ts.dates(text)}
-        self.fixed_dates = {f.iso for f in ts.dates(self.fixed)}
+        # только даты выдачи: «действительно до …» датой документа быть не может
+        self.raw_dates = set(ts.issue_dates(text))
+        self.fixed_dates = set(ts.issue_dates(self.fixed))
+        self.raw_bins = ts.supplier_bin_candidates(text)
+        self.fixed_bins = ts.supplier_bin_candidates(self.fixed)
+        self.raw_vat = ts.vat_numbers(text)
+        self.fixed_vat = ts.vat_numbers(self.fixed)
         self.norm_raw = _norm(text)
 
     def number(self, v: float) -> str | None:
@@ -48,10 +53,16 @@ class _Evidence:
             return "verbatim"
         return "ocr" if iso in self.fixed_dates else None
 
-    def digits12(self, value: str) -> str | None:
-        if re.search(rf"(?<!\d){value}(?!\d)", self.raw):
+    def supplier_bin(self, value: str) -> str | None:
+        if value in self.raw_bins:
             return "verbatim"
-        return "ocr" if re.search(rf"(?<!\d){value}(?!\d)", self.fixed) else None
+        return "ocr" if value in self.fixed_bins else None
+
+    def vat(self, v: float) -> str | None:
+        close = lambda s: any(abs(v - x) < 0.005 for x in s)  # noqa: E731
+        if close(self.raw_vat):
+            return "verbatim"
+        return "ocr" if close(self.fixed_vat) else None
 
     def doc_number(self, value: str) -> str | None:
         """Номер должен стоять сразу после маркера (№, No, #, «номер»): иначе «1» находится в любом тексте."""
@@ -91,12 +102,12 @@ def ground(result: DocResult, text: str) -> DocResult:
             warnings.append(f"ocr_repaired: {field} matched only after fixing OCR confusions (O/0, l/1, З/3)")
 
     if d["supplier_bin"] is not None:
-        how = ev.digits12(d["supplier_bin"])
-        drop("supplier_bin", "12 digits not found in the document") if how is None else keep("supplier_bin", how)
+        how = ev.supplier_bin(d["supplier_bin"])
+        drop("supplier_bin", "12 digits not found in the document outside the buyer's lines") if how is None else keep("supplier_bin", how)
 
     if d["doc_date"] is not None:
         how = ev.date(d["doc_date"])
-        drop("doc_date", "date not found in the document") if how is None else keep("doc_date", how)
+        drop("doc_date", "issue date not found in the document (validity dates don't count)") if how is None else keep("doc_date", how)
 
     if d["supplier_name"] is not None:
         how = ev.string(d["supplier_name"])
@@ -112,11 +123,15 @@ def ground(result: DocResult, text: str) -> DocResult:
         else:
             drop("currency", "no currency marker for it in the document")
 
-    for f in ("total_amount", "vat_amount"):
-        if d[f] is not None:
-            # 0 не подтверждаем: «НДС не облагается»/«00 тиын» — не утверждение «НДС = 0» (правило 4 в README)
-            how = ev.number(d[f]) if d[f] > 0 else None
-            drop(f, "number not found in the document (not computed by us on purpose)") if how is None else keep(f, how)
+    if d["total_amount"] is not None:
+        # 0 не подтверждаем: «00 тиын» — не сумма
+        how = ev.number(d["total_amount"]) if d["total_amount"] > 0 else None
+        drop("total_amount", "number not found in the document") if how is None else keep("total_amount", how)
+
+    if d["vat_amount"] is not None:
+        # НДС подтверждается только числом на строке с меткой НДС/VAT; ставка 16% и ноль — не сумма (правило 4 в README)
+        how = ev.vat(d["vat_amount"]) if d["vat_amount"] > 0 else None
+        drop("vat_amount", "no such amount on a line labelled VAT/НДС (not computed by us on purpose)") if how is None else keep("vat_amount", how)
 
     items = []
     for it in d["line_items"]:

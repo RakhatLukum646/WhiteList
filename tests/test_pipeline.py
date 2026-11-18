@@ -132,3 +132,51 @@ def test_zero_vat_is_not_accepted_even_if_zero_appears_in_text():
 def test_model_may_report_confidence_for_line_items():
     out = extract(DOC1, Scripted(answer(field_confidence={"line_items": 1.0})))
     assert out.ok and out.attempts == 1
+
+
+def _doc(n):
+    return (Path(__file__).parent.parent / "data" / "docs" / f"{n}.txt").read_text(encoding="utf-8")
+
+
+def _only(**kw):
+    base = dict(doc_type="invoice", supplier_name=None, supplier_bin=None, doc_number=None, doc_date=None,
+                currency=None, total_amount=None, vat_amount=None, line_items=[], field_confidence={}, warnings=[])
+    return {**base, **kw}
+
+
+def test_buyer_bin_is_not_accepted_as_supplier_bin():
+    out = extract(_doc("05"), Scripted(_only(supplier_bin="090540001234")))  # БИН заказчика из Документа 5
+    assert out.result.supplier_bin is None
+    assert any(w.startswith("ungrounded_supplier_bin") for w in out.result.warnings)
+
+
+def test_bin_on_the_line_below_the_buyer_name_is_also_rejected():
+    text = "Заказчик: ТОО «Нур-Ойл»\nБИН 090540001234\nИсполнитель: ТОО «Астана Строй»"
+    assert extract(text, Scripted(_only(supplier_bin="090540001234"))).result.supplier_bin is None
+
+
+def test_supplier_bin_still_accepted_when_buyer_present_elsewhere():
+    text = "ТОО «Поставщик»\nБИН 170340021554\nЗаказчик: ТОО «Нур-Ойл», БИН 090540001234"
+    r = extract(text, Scripted(_only(supplier_bin="170340021554"))).result
+    assert r.supplier_bin == "170340021554"
+
+
+def test_validity_date_is_not_accepted_as_doc_date():
+    out = extract(_doc("02"), Scripted(_only(doc_date="2026-11-30")))  # «действительно до 30.11.2026»
+    assert out.result.doc_date is None
+    assert extract(_doc("02"), Scripted(_only(doc_date="2026-11-05"))).result.doc_date == "2026-11-05"
+
+
+def test_vat_rate_is_not_accepted_as_vat_amount():
+    assert extract(_doc("01"), Scripted(_only(vat_amount=16))).result.vat_amount is None  # «НДС 16%»
+    assert extract(_doc("01"), Scripted(_only(vat_amount=25680))).result.vat_amount == 25680
+
+
+def test_vat_amount_must_sit_on_a_vat_line():
+    # 160 500 есть в документе (строка «Итого»), но это не НДС
+    assert extract(_doc("01"), Scripted(_only(vat_amount=160500))).result.vat_amount is None
+
+
+def test_ocr_vat_on_vat_line_is_accepted_with_warning():
+    r = extract(_doc("08"), Scripted(_only(vat_amount=8000))).result
+    assert r.vat_amount == 8000 and any(w.startswith("ocr_repaired: vat_amount") for w in r.warnings)

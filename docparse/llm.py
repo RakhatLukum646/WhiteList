@@ -1,6 +1,7 @@
 """Бэкенды LLM. Интерфейс один: список сообщений → строка с ответом модели."""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
@@ -57,3 +58,44 @@ class GeminiLLM:
                 last = e
             time.sleep(2 ** attempt)
         raise LLMUnavailable(f"Gemini {self.model} failed after retries: {last}") from last
+
+
+def _doc_key(messages: list[dict]) -> str:
+    return hashlib.sha256(messages[1]["content"].encode()).hexdigest()[:16]  # messages[1] — сам документ
+
+
+def prompt_hash(system: str) -> str:
+    return hashlib.sha256(system.encode()).hexdigest()[:12]
+
+
+class RecordingLLM:
+    """Обёртка: пишет сырые ответы настоящей модели (все попытки, по порядку) для последующего офлайн-прогона."""
+
+    def __init__(self, inner: LLM):
+        self.inner = inner
+        self.answers: dict[str, list[str]] = {}
+
+    def complete(self, messages: list[dict]) -> str:
+        raw = self.inner.complete(messages)
+        self.answers.setdefault(_doc_key(messages), []).append(raw)
+        return raw
+
+
+class ReplayLLM:
+    """Отдаёт записанные ответы настоящей модели. Сеть и ключ не нужны; пайплайн (схема, ретраи, grounding) —
+    тот же самый, что и в бою. Ключ записи — хеш текста документа."""
+
+    def __init__(self, path: str):
+        data = json.load(open(path, encoding="utf-8"))
+        self.meta, self.answers = data["_meta"], data["answers"]
+        self.model = f"{self.meta['model']} (replay)"
+        self.used: dict[str, int] = {}
+
+    def complete(self, messages: list[dict]) -> str:
+        key = _doc_key(messages)
+        raws = self.answers.get(key)
+        i = self.used.get(key, 0)
+        if raws is None or i >= len(raws):
+            raise LLMUnavailable("no recorded answer for this document/attempt; re-record with: python eval.py --record")
+        self.used[key] = i + 1
+        return raws[i]

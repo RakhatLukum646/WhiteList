@@ -47,3 +47,11 @@ def test_cli_exit_code_4_without_api_key():
     p = subprocess.run([sys.executable, "-m", "docparse", "data/docs/01.txt"], cwd=ROOT, capture_output=True,
                        text=True, encoding="utf-8", env=env)
     assert p.returncode == 4 and "GOOGLE_API_KEY" in p.stderr
+
+
+def test_replay_eval_runs_offline_without_key_and_has_no_hallucinations():
+    env = {k: v for k, v in os.environ.items() if k != "GOOGLE_API_KEY"}
+    p = subprocess.run([sys.executable, "eval.py", "--replay"], cwd=ROOT, capture_output=True, text=True,
+                       encoding="utf-8", env=env)
+    assert p.returncode == 0, p.stderr
+    assert "ГАЛЛЮЦИНАЦИИ (в эталоне null, заполнено): 0" in p.stdout and "(replay)" in p.stdout

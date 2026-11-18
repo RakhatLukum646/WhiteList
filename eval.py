@@ -13,7 +13,10 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from docparse.llm import GeminiLLM, LLMUnavailable
+from datetime import date
+
+from docparse.llm import GeminiLLM, LLMUnavailable, RecordingLLM, ReplayLLM, prompt_hash
+from docparse.prompts import SYSTEM
 from docparse.pipeline import extract
 from docparse.schema import SCALAR_FIELDS, DocResult
 
@@ -56,11 +59,21 @@ def main() -> int:
     ap.add_argument("--no-guard", action="store_true", help="отключить grounding/reconcile (для сравнения)")
     ap.add_argument("--docs", default=str(ROOT / "data" / "docs"))
     ap.add_argument("--gold", default=str(ROOT / "data" / "gold"))
+    ap.add_argument("--replay", action="store_true", help="без ключа и сети: ответы настоящего Gemini из data/replay.json")
+    ap.add_argument("--record", action="store_true", help="прогнать настоящий Gemini и записать ответы в data/replay.json")
     ap.add_argument("-v", "--verbose", action="store_true", help="печатать каждое расхождение")
     args = ap.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")
 
-    llm = GeminiLLM(args.model)
+    replay_file = ROOT / "data" / "replay.json"
+    if args.replay:
+        llm = ReplayLLM(str(replay_file))
+        if llm.meta["prompt"] != prompt_hash(SYSTEM):
+            print("warning: промпт изменился после записи ответов — перезапишите: python eval.py --record", file=sys.stderr)
+    else:
+        llm = GeminiLLM(args.model)
+        if args.record:
+            llm = RecordingLLM(llm)
     stats = {f: Counter() for f in FIELDS}
     item_tp = item_fp = item_fn = 0
     retried = failed = 0
@@ -98,7 +111,8 @@ def main() -> int:
                 diffs.append(f"  {doc.stem} warnings       MISSING expected warning code {need!r}")
 
     n = len(docs)
-    print(f"model={llm.model} guard={'off' if args.no_guard else 'on'} документов={n}\n")
+    model_name = getattr(llm, "model", None) or llm.inner.model
+    print(f"model={model_name} guard={'off' if args.no_guard else 'on'} документов={n}\n")
     print(f"{'поле':15}{'верно':>7}{'точность':>10}{'галлюц.':>9}{'пропуск':>9}{'неверно':>9}")
     tot = Counter()
     for f in FIELDS:
@@ -112,6 +126,10 @@ def main() -> int:
     print(f"позиции line_items: верных {item_tp}, лишних(выдуманных) {item_fp}, пропущенных {item_fn}")
     print(f"ожидаемые предупреждения найдены: {warn_hit}/{warn_need}")
     print(f"ответ невалиден с 1-й попытки, но исправлен ретраем: {retried}; провал валидации (fallback): {failed}")
+    if args.record:
+        meta = {"model": llm.inner.model, "recorded": date.today().isoformat(), "prompt": prompt_hash(SYSTEM)}
+        replay_file.write_text(json.dumps({"_meta": meta, "answers": llm.answers}, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"\nответы записаны: {replay_file.name} ({meta['model']}, {meta['recorded']})")
     if args.verbose and diffs:
         print("\nРасхождения:\n" + "\n".join(diffs))
     return 0

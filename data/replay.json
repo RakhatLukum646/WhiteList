@@ -1,0 +1,39 @@
+{
+ "_meta": {
+  "model": "gemini-3.8-flash",
+  "recorded": "2026-11-18",
+  "prompt": "3120cf66658c"
+ },
+ "answers": {
+  "0f458685e3437352": [
+   "{\"doc_type\":\"invoice\",\"supplier_name\":\"ТОО \\\"Алматы Трейд Компани\\\"\",\"supplier_bin\":\"170340021554\",\"doc_number\":\"1245\",\"doc_date\":\"2026-11-12\",\"currency\":\"KZT\",\"total_amount\":186180,\"vat_amount\":25680,\"line_items\":[{\"name\":\"Бумага А4 80 г/м2\",\"qty\":50,\"price\":2100},{\"name\":\"Картридж HP 85A\",\"qty\":3,\"price\":18500}],\"field_confidence\":{\"doc_type\":1,\"supplier_name\":1,\"supplier_bin\":1,\"doc_number\":1,\"doc_date\":1,\"currency\":1,\"total_amount\":1,\"vat_amount\":1,\"line_items\":1},\"warnings\":[]}"
+  ],
+  "94330b9d82d2e031": [
+   "{\"doc_type\":\"commercial_offer\",\"supplier_name\":\"Digital Solutions\",\"supplier_bin\":null,\"doc_number\":null,\"doc_date\":\"2026-11-05\",\"currency\":\"KZT\",\"total_amount\":null,\"vat_amount\":null,\"line_items\":[{\"name\":\"Разработка сайта\",\"qty\":null,\"price\":450000},{\"name\":\"Техподдержка, в месяц\",\"qty\":null,\"price\":60000}],\"field_confidence\":{\"doc_type\":1.0,\"supplier_name\":0.95,\"supplier_bin\":0.0,\"doc_number\":0.0,\"doc_date\":0.95,\"currency\":0.95,\"total_amount\":0.0,\"vat_amount\":0.0,\"line_items\":0.9},\"warnings\":[]}"
+  ],
+  "294c8477562fea8c": [
+   "{\"doc_type\":\"invoice\",\"supplier_name\":\"ТОО \\\"Кокжиек Курылыс\\\"\",\"supplier_bin\":\"210640900180\",\"doc_number\":\"AKT-09\",\"doc_date\":\"2026-10-09\",\"currency\":\"KZT\",\"total_amount\":340000,\"vat_amount\":null,\"line_items\":[{\"name\":\"Қызмет көрсету / Оказание услуг\",\"qty\":1,\"price\":340000}],\"field_confidence\":{\"doc_type\":0.95,\"supplier_name\":0.95,\"supplier_bin\":0.85,\"doc_number\":0.95,\"doc_date\":0.95,\"currency\":0.95,\"total_amount\":0.95,\"vat_amount\":1.0,\"line_items\":0.95},\"warnings\":[\"Исправлены OCR-ошибки в БИН: 'l' заменено на '1', 'O' заменено на '0'\"]}"
+  ],
+  "aeb749d7433812a1": [
+   "{\"doc_type\":\"invoice\",\"supplier_name\":\"Bluewave Consulting LLP\",\"supplier_bin\":\"081140012876\",\"doc_number\":\"INV-2026/77\",\"doc_date\":\"2026-10-01\",\"currency\":\"USD\",\"total_amount\":1548.5,\"vat_amount\":null,\"line_items\":[{\"name\":\"Consulting services\",\"qty\":10,\"price\":125.0},{\"name\":\"Hosting (monthly)\",\"qty\":3,\"price\":99.5}],\"field_confidence\":{\"doc_type\":1.0,\"supplier_name\":1.0,\"supplier_bin\":1.0,\"doc_number\":1.0,\"doc_date\":1.0,\"currency\":1.0,\"total_amount\":1.0,\"vat_amount\":1.0,\"line_items\":1.0},\"warnings\":[]}"
+  ],
+  "4ece378549740271": [
+   "{\"doc_type\":\"act\",\"supplier_name\":\"ТОО «Астана Строй 2021»\",\"supplier_bin\":null,\"doc_number\":\"15\",\"doc_date\":\"2026-10-30\",\"currency\":\"KZT\",\"total_amount\":1000000,\"vat_amount\":137931,\"line_items\":[{\"name\":\"Монтаж вентиляции\",\"qty\":1,\"price\":800000},{\"name\":\"Пусконаладочные работы\",\"qty\":1,\"price\":200000}],\"field_confidence\":{\"doc_type\":1.0,\"supplier_name\":1.0,\"supplier_bin\":0.0,\"doc_number\":1.0,\"doc_date\":1.0,\"currency\":1.0,\"total_amount\":1.0,\"vat_amount\":1.0,\"line_items\":1.0},\"warnings\":[\"БИН поставщика (исполнителя) отсутствует в документе; указан только БИН заказчика.\"]}"
+  ],
+  "08ef98dffa328106": [
+   "{\"doc_type\":\"commercial_offer\",\"supplier_name\":\"Nordic Parts GmbH\",\"supplier_bin\":null,\"doc_number\":\"КП-2026/14\",\"doc_date\":null,\"currency\":\"EUR\",\"total_amount\":null,\"vat_amount\":null,\"line_items\":[{\"name\":\"Насос центробежный NP-200\",\"qty\":null,\"price\":4500},{\"name\":\"Комплект уплотнений\",\"qty\":null,\"price\":320}],\"field_confidence\":{\"doc_type\":1.0,\"supplier_name\":1.0,\"supplier_bin\":1.0,\"doc_number\":1.0,\"doc_date\":1.0,\"currency\":1.0,\"total_amount\":0.8,\"vat_amount\":1.0,\"line_items\":0.95},\"warnings\":[\"Итоговая сумма не указана в документе\",\"Дата документа не указана\"]}"
+  ],
+  "eebdaadec4fa5b87": [
+   "{\"doc_type\":\"invoice\",\"supplier_name\":\"ТОО \\\"Тараз Моторс\\\"\",\"supplier_bin\":\"150840012345\",\"doc_number\":\"88\",\"doc_date\":\"2026-11-03\",\"currency\":\"KZT\",\"total_amount\":120000,\"vat_amount\":null,\"line_items\":[{\"name\":\"Масло моторное 5W-40 (канистра)\",\"qty\":10,\"price\":12000}],\"field_confidence\":{\"doc_type\":1.0,\"supplier_name\":1.0,\"supplier_bin\":1.0,\"doc_number\":1.0,\"doc_date\":0.7,\"currency\":1.0,\"total_amount\":0.7,\"vat_amount\":1.0,\"line_items\":1.0},\"warnings\":[\"Обнаружено несколько дат документа (03.11.2026 и 05.11.2026), выбрана первая.\",\"Обнаружено несколько итоговых сумм (120 000 и 125 000), выбрана первая.\"]}"
+  ],
+  "8679313dca6c79de": [
+   "{\"doc_type\":\"invoice\",\"supplier_name\":\"ТОО \\\"Семей Снаб\\\"\",\"supplier_bin\":\"101240003571\",\"doc_number\":\"117\",\"doc_date\":\"2026-11-03\",\"currency\":\"KZT\",\"total_amount\":58000,\"vat_amount\":8000,\"line_items\":[{\"name\":\"Цемент М400\",\"qty\":20,\"price\":2500}],\"field_confidence\":{\"doc_type\":0.99,\"supplier_name\":0.95,\"supplier_bin\":0.85,\"doc_number\":0.98,\"doc_date\":0.88,\"currency\":0.95,\"total_amount\":0.9,\"vat_amount\":0.9,\"line_items\":0.9},\"warnings\":[\"Исправлены OCR-ошибки (замена букв 'O'/'l' на цифры '0'/'1') в БИН, дате, наименовании и суммах\"]}"
+  ],
+  "53dcd037a0a4080c": [
+   "{\"doc_type\":\"unknown\",\"supplier_name\":null,\"supplier_bin\":null,\"doc_number\":null,\"doc_date\":null,\"currency\":null,\"total_amount\":null,\"vat_amount\":null,\"line_items\":[],\"field_confidence\":{\"doc_type\":1.0,\"supplier_name\":0.0,\"supplier_bin\":0.0,\"doc_number\":0.0,\"doc_date\":0.0,\"currency\":0.0,\"total_amount\":0.0,\"vat_amount\":0.0},\"warnings\":[\"Текст представляет собой запрос на выставление счёта, а не финансовый документ\"]}"
+  ],
+  "b1ee73dce9f3117f": [
+   "{\"doc_type\":\"invoice\",\"supplier_name\":\"ТОО «Сары-Арка Логистик»\",\"supplier_bin\":\"120140009876\",\"doc_number\":\"2026-045\",\"doc_date\":\"2026-10-12\",\"currency\":\"KZT\",\"total_amount\":1234567.89,\"vat_amount\":null,\"line_items\":[{\"name\":\"Доставка груза Астана-Алматы\",\"qty\":1,\"price\":1234567.89}],\"field_confidence\":{\"doc_type\":1.0,\"supplier_name\":1.0,\"supplier_bin\":1.0,\"doc_number\":1.0,\"doc_date\":1.0,\"currency\":1.0,\"total_amount\":1.0,\"vat_amount\":1.0,\"line_items\":1.0},\"warnings\":[]}"
+  ]
+ }
+}

@@ -126,7 +126,8 @@ def numbers(text: str) -> list[Num]:
 
 
 def number_values(text: str) -> set[float]:
-    return {n.value for n in numbers(text)}
+    """Значения, которые могут быть суммой/количеством. Ставки («16%») — не суммы, в набор не входят."""
+    return {n.value for n in numbers(text) if not n.percent}
 
 
 # --- Суммы прописью (рус. + каз.) -------------------------------------------------------------
@@ -228,3 +229,30 @@ def total_candidates(text: str) -> list[float]:
         if vals:
             return vals
     return []
+
+
+# --- Роли и метки: значение подтверждается только в «своём» контексте ---------------------------
+BUYER = re.compile(r"заказчик|покупатель|плательщик|buyer|bill\s+to|customer", re.I)
+_VAT_LABEL = re.compile(r"(?<![сc]\s)(?:ндс|ққс|vat)", re.I)  # «с НДС» — это итог, а не сам НДС
+
+
+def supplier_bin_candidates(text: str) -> set[str]:
+    """12-значные токены, которые могут быть БИН поставщика: не на строке заказчика/покупателя
+    и не на строке сразу после неё (там БИН стоит под названием заказчика)."""
+    lines = text.splitlines()
+    out: set[str] = set()
+    for i, line in enumerate(lines):
+        prev = next((lines[j] for j in range(i - 1, -1, -1) if lines[j].strip()), "")
+        if BUYER.search(line) or BUYER.search(prev):
+            continue
+        out.update(re.findall(r"(?<!\d)\d{12}(?!\d)", line))
+    return out
+
+
+def vat_numbers(text: str) -> set[float]:
+    """Числа на строках с меткой НДС/VAT, кроме ставок (16%) и нулей."""
+    out: set[float] = set()
+    for line in text.splitlines():
+        if _VAT_LABEL.search(line):
+            out.update(n.value for n in numbers(line) if not n.percent and n.value > 0)
+    return out
