@@ -1,0 +1,9 @@
+INVOICE No. INV-2026/77
+Date: 2026-10-01
+Seller: Bluewave Consulting LLP
+BIN 081140012876
+Description              Qty        Price        Amount
+Consulting services       10      125.00      1,250.00
+Hosting (monthly)          3       99.50        298.50
+Total: USD 1,548.50
+VAT: not applicable

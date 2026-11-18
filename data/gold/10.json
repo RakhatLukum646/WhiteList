@@ -1,0 +1,19 @@
+{
+  "doc_type": "invoice",
+  "supplier_name": "ТОО \"Сары-Арка Логистик\"",
+  "supplier_bin": "120140009876",
+  "doc_number": "2026-045",
+  "doc_date": "2026-10-12",
+  "currency": "KZT",
+  "total_amount": 1234567.89,
+  "vat_amount": null,
+  "line_items": [
+    {
+      "name": "Доставка груза Астана-Алматы",
+      "qty": 1,
+      "price": 1234567.89
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}

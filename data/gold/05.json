@@ -1,0 +1,24 @@
+{
+  "doc_type": "act",
+  "supplier_name": "ТОО \"Астана Строй 2021\"",
+  "supplier_bin": null,
+  "doc_number": "15",
+  "doc_date": "2026-10-30",
+  "currency": "KZT",
+  "total_amount": 1000000,
+  "vat_amount": 137931,
+  "line_items": [
+    {
+      "name": "Монтаж вентиляции",
+      "qty": 1,
+      "price": 800000
+    },
+    {
+      "name": "Пусконаладочные работы",
+      "qty": 1,
+      "price": 200000
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}

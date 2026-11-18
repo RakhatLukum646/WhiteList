@@ -1,0 +1,24 @@
+{
+  "doc_type": "commercial_offer",
+  "supplier_name": "Nordic Parts GmbH",
+  "supplier_bin": null,
+  "doc_number": "КП-2026/14",
+  "doc_date": null,
+  "currency": "EUR",
+  "total_amount": null,
+  "vat_amount": null,
+  "line_items": [
+    {
+      "name": "Насос центробежный NP-200",
+      "qty": null,
+      "price": 4500
+    },
+    {
+      "name": "Комплект уплотнений",
+      "qty": null,
+      "price": 320
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}

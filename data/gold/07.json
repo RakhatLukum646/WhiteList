@@ -1,0 +1,22 @@
+{
+  "doc_type": "invoice",
+  "supplier_name": "ТОО \"Тараз Моторс\"",
+  "supplier_bin": "150840012345",
+  "doc_number": "88",
+  "doc_date": "2026-11-03",
+  "currency": "KZT",
+  "total_amount": 120000,
+  "vat_amount": null,
+  "line_items": [
+    {
+      "name": "Масло моторное 5W-40 (канистра)",
+      "qty": 10,
+      "price": 12000
+    }
+  ],
+  "field_confidence": {},
+  "warnings": [
+    "doc_date_conflict",
+    "total_conflict"
+  ]
+}

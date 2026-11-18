@@ -1,0 +1,21 @@
+{
+  "doc_type": "invoice",
+  "supplier_name": "ТОО \"Семей Снаб\"",
+  "supplier_bin": "101240003571",
+  "doc_number": "117",
+  "doc_date": "2026-11-03",
+  "currency": "KZT",
+  "total_amount": 58000,
+  "vat_amount": 8000,
+  "line_items": [
+    {
+      "name": "Цемент М4ОО",
+      "qty": 20,
+      "price": 2500
+    }
+  ],
+  "field_confidence": {},
+  "warnings": [
+    "ocr_repaired"
+  ]
+}

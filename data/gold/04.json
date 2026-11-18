@@ -1,0 +1,24 @@
+{
+  "doc_type": "invoice",
+  "supplier_name": "Bluewave Consulting LLP",
+  "supplier_bin": "081140012876",
+  "doc_number": "INV-2026/77",
+  "doc_date": "2026-10-01",
+  "currency": "USD",
+  "total_amount": 1548.5,
+  "vat_amount": null,
+  "line_items": [
+    {
+      "name": "Consulting services",
+      "qty": 10,
+      "price": 125
+    },
+    {
+      "name": "Hosting (monthly)",
+      "qty": 3,
+      "price": 99.5
+    }
+  ],
+  "field_confidence": {},
+  "warnings": []
+}
