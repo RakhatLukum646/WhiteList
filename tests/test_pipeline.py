@@ -180,3 +180,23 @@ def test_vat_amount_must_sit_on_a_vat_line():
 def test_ocr_vat_on_vat_line_is_accepted_with_warning():
     r = extract(_doc("08"), Scripted(_only(vat_amount=8000))).result
     assert r.vat_amount == 8000 and any(w.startswith("ocr_repaired: vat_amount") for w in r.warnings)
+
+
+def test_vat_amount_is_not_taken_from_a_without_vat_line():
+    text = "Счёт № 5 от 01.10.2026\nИтого без НДС: 100 тенге\nВсего к оплате: 100 тенге"
+    assert extract(text, Scripted(_only(vat_amount=100))).result.vat_amount is None
+    assert extract("НДС 16%: 25 680 тенге", Scripted(_only(vat_amount=25680))).result.vat_amount == 25680
+    assert extract("Total excl. VAT: 100 USD", Scripted(_only(vat_amount=100))).result.vat_amount is None
+
+
+def test_single_line_item_price_is_not_accepted_as_total():
+    out = extract(_doc("06"), Scripted(_only(doc_type="commercial_offer", total_amount=4500)))  # 4 500 EUR — цена позиции
+    assert out.result.total_amount is None
+    assert any(w.startswith("ungrounded_total_amount") for w in out.result.warnings)
+
+
+def test_total_on_a_total_line_still_accepted_in_all_forms():
+    assert extract(_doc("01"), Scripted(_only(total_amount=186180))).result.total_amount == 186180
+    assert extract(_doc("03"), Scripted(_only(total_amount=340000))).result.total_amount == 340000  # прописью
+    r = extract(_doc("08"), Scripted(_only(total_amount=58000))).result  # OCR
+    assert r.total_amount == 58000 and any(w.startswith("ocr_repaired: total_amount") for w in r.warnings)

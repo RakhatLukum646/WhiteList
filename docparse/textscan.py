@@ -234,6 +234,9 @@ def total_candidates(text: str) -> list[float]:
 # --- Роли и метки: значение подтверждается только в «своём» контексте ---------------------------
 BUYER = re.compile(r"заказчик|покупатель|плательщик|buyer|bill\s+to|customer", re.I)
 _VAT_LABEL = re.compile(r"(?<![сc]\s)(?:ндс|ққс|vat)", re.I)  # «с НДС» — это итог, а не сам НДС
+# строка про НДС, но НДС на ней нет: «без НДС», «не облагается», «excl. VAT»…
+_VAT_ABSENT = re.compile(r"без\s+(?:учёта\s+|учета\s+)?ндс|не\s+облагается|ққс\s+жоқ|not\s+applicable|n/a|exempt|excl|ex\.?\s*vat|without\s+vat", re.I)
+_TOTAL_LABEL = re.compile(r"итого|всего|к\s+оплате|сумма|стоимость|жалпы|барлығы|total|amount|sum", re.I)
 
 
 def supplier_bin_candidates(text: str) -> set[str]:
@@ -253,6 +256,18 @@ def vat_numbers(text: str) -> set[float]:
     """Числа на строках с меткой НДС/VAT, кроме ставок (16%) и нулей."""
     out: set[float] = set()
     for line in text.splitlines():
-        if _VAT_LABEL.search(line):
+        if _VAT_LABEL.search(line) and not _VAT_ABSENT.search(line):
             out.update(n.value for n in numbers(line) if not n.percent and n.value > 0)
     return out
+
+
+def total_values(text: str) -> tuple[set[float], set[float]]:
+    """(числа цифрами, суммы прописью) только со строк с меткой итога: «Итого», «Всего к оплате», «Total», «Жалпы сомасы».
+    Цена отдельной позиции или любое «просто число» итогом быть не может."""
+    digits: set[float] = set()
+    words: set[float] = set()
+    for line in text.splitlines():
+        if _TOTAL_LABEL.search(line):
+            digits.update(n.value for n in numbers(line) if not n.percent and n.value > 0)
+            words.update(w.value for w in word_amounts(line))
+    return digits, words
